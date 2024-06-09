@@ -276,7 +276,7 @@ void getMinAndMaxFeatureValues(csvData_t *df)
  *
  * @code
  *   // Example usage:
- *   FILE *file = fopen("data.csv", "r");
+ *   FILE *file = NULL;
  *   csvData_t *dataFrame = loadCsv(file);
  *   if (dataFrame != NULL)
  *   {
