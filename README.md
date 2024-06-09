@@ -8,7 +8,7 @@ FILE *fp = NULL;
 csvData_t *df = loadCsv(fp);
 ```
 
-Dataset's file name/open mode can be modified in the header file, defined as:
+Dataset file name/open mode can be modified in the header file, defined as:
 
 ```
 #define CSV_PATH        ("../data/synthetic_data_elliptical.csv")
