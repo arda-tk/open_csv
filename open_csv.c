@@ -57,146 +57,6 @@ static void closeFile(FILE *filePtr)
 }
 
 /**
- * @brief Get the size of a data frame from a '.csv' file.
- *
- * This function reads a '.csv' file pointed to by 'filePtr' and determines the number of rows and columns
- * in the data frame. It skips the first row (usually containing feature names) and counts the rows
- * and columns in the dataset.
- *
- * @param filePtr A pointer to the '.csv' file to analyze.
- * @return An integer array containing the number of rows and columns, or NULL if an error occurs.
- *
- * @note This function dynamically allocates memory for the integer array 'retVal,' which should be
- *       freed by the caller when no longer needed to avoid memory leaks.
- *
- * @code
- *   // Example usage:
- *   FILE *file = fopen("data.csv", "r");
- *   int *size = getDFsize(file);
- *   if (size != NULL) {
- *       printf("Number of rows: %d\n", size[0]);
- *       printf("Number of columns: %d\n", size[1]);
- *       free(size); // Free the allocated memory
- *   }
- *   else
- *   {
- *       puts("Error occurred while getting data frame size.");
- *   }
- *   // Analyze the '.csv' file and retrieve the data frame size...
- * @endcode
- */
-static int *getFrameSize(void)
-{
-    char buffer[1024];      //buffer
-    int skipFirstRow = 0;   //skips the "feature names" row, commonly the first row in the file
-    int dfRows = 0, dfCols = 0;  //number of rows and cols
-    int *retVal = (int *)malloc(sizeof(int) * 3);  //return value
-
-    /*if(csvPtr != NULL) //check file validity
-    {
-        printf("The file has been opened by getFrameSize().\n");
-    }
-    else
-    {
-        csvPtr = fopen(CSV_PATH, CSV_MODE);
-
-        if(csvPtr == NULL)
-        {
-            puts("getFrameSize(): Could not open the file.");
-            return NULL;
-        }
-    }*/
-
-    bool_t lock = FALSE;
-    while(fgets(buffer, 1024, csvPtr)) //pull file contents row by row
-    {
-        if(MAX_ALLOWED_FEATURE_VALUE - 1 == dfRows)
-        {
-            LOG_ERROR("The program prevented itself from segfault (via array overflow).\n");
-            abort();
-        }
-
-        char *tokens = strtok(buffer, CSV_DELIM); //split rows into tokens separated by deliminator
-
-        if(skipFirstRow == 0) //this condition locks itself out once it has executed for the value 0
-        {
-            skipFirstRow = 1;
-            continue;
-        }
-
-        if(lock == FALSE) //also runs once and locks itself out. counts the number of columns in dataset
-        {
-            while(tokens) //count tokens
-            {
-                tokens = strtok(NULL, CSV_DELIM);
-                dfCols++;
-            }
-            lock = TRUE;
-        }
-
-        dfRows++; //count rows
-    }
-
-    retVal[0] = dfRows;
-    retVal[1] = dfCols;
-
-    //closeFile(csvPtr);
-
-    return retVal;
-}
-
-/**
- * @brief Create a CSV data frame structure based on file information.
- *
- * This function analyzes a '.csv' file pointed to by 'filePtr' to determine its size and creates
- * a CSV data frame structure accordingly. The data frame structure includes the number of rows,
- * columns, delimiter, and feature parameters.
- *
- * @param filePtr A pointer to the '.csv' file to create the data frame from.
- * @return A pointer to a dynamically allocated 'csvData_t' structure representing the data frame.
- *
- * @note The caller is responsible for freeing the memory allocated for the 'csvData_t' structure
- *       and its members when it is no longer needed to avoid memory leaks.
- *
- * @code
- *   // Example usage:
- *   FILE *file = fopen("data.csv", "r");
- *   csvData_t *dataFrame = createDataFrame(FILE);
- *   if (dataFrame != NULL) {
- *       // Use the data frame...
- *       free(dataFrame->delim);
- *       free(dataFrame->params);
- *       free(dataFrame);
- *   }
- *   else
- *   {
- *       puts("Error occurred while creating the data frame.");
- *   }
- *   // Create a data frame based on the '.csv' file...
- * @endcode
- */
-static csvData_t createDataFrame(void)
-{
-    int *dfSize = getFrameSize(); //get dataframe size info
-
-    csvData_t dataFrame = {
-        .delim = CSV_DELIM,
-        .rows = dfSize[0],
-        .cols = dfSize[1],
-        .size = dfSize[0] * dfSize[1]
-    };
-
-    //free(dfSize);
-
-#if HIGH_DATAFRAME_DETAIL == 1
-    dataFrame->maxFeatureValues = (float *)malloc(sizeof(float) * dataFrame->cols);
-    dataFrame->minFeatureValues = (float *)malloc(sizeof(float) * dataFrame->cols);
-#endif
-
-    return dataFrame;
-}
-
-/**
  * @brief Trim a token by removing non-alphanumeric characters.
  *
  * This function takes a token as input and removes any non-alphanumeric characters from it.
@@ -319,53 +179,19 @@ csvData_t loadCsv()
         puts("the file has been opened\n");
     }
 
-    puts("test1");
-
-    int *dfSize = getFrameSize(); //get dataframe size info
-
     csvData_t df = {
         .delim = CSV_DELIM,
-        .rows = dfSize[0],
-        .cols = dfSize[1],
-        .size = dfSize[0] * dfSize[1]
+        .rows = 0,
+        .cols = 0,
+        .size = 0l
     };
-
-    free(dfSize);
-    //csvData_t df = createDataFrame(); //create and initialize dataframe
-    puts("test2");
 
     //EXTRACT FEATURE NAMES ---------------------------------------------------
 
     {
         fgets(buffer, 1024, csvPtr);       //get the first line of csv file
-
-
-        puts("before-op");
-        while (fgets(buffer, 80, csvPtr))
-        {
-            puts("aaaaa");
-
-            // If you need all the values in a row
-            char *token = strtok(buffer, ",");
-            while (token)
-            {
-                printf("tokens inside: %s\n", token);
-
-                token = strtok(NULL, ",");
-            }
-        }
-        puts("op-done");
-
-
-        puts("test3");
-        char *tokens = strtok(buffer, &df.delim);   //split into multiple tokens
-        puts("test4");
+        char *tokens = strtok(buffer, ",");   //split into multiple tokens
         int tokenCount = 0;
-
-        if(tokens == NULL)
-        {
-            puts("lol");
-        }
 
         while(tokens)
         {
@@ -376,19 +202,20 @@ csvData_t loadCsv()
                 abort();
             }
 
-            puts("test5");
-
             char *label = trimToken(tokens); //trim token of unwanted characters
-
-            puts("test6");
-
             df.features[tokenCount] = (char *)malloc(sizeof(char) * (strlen(label) + 1));
-            strncat(df.features[tokenCount], label, sizeof(char) * strlen(label)); //write into dataframe
-            strncat(df.features[tokenCount], '\0', sizeof(char));
-            printf("\"%s\", \n", trimToken(tokens)); //print dataset features, can be commented out
-            tokens = strtok(NULL, &df.delim); //split the next token from source
-            //free(label);
-            puts("test7");
+            strncpy(df.features[tokenCount], label, sizeof(char) * strlen(label)); //write into dataframe
+            /*
+             * --> strncat(df.features[tokenCount], '\0', sizeof(char));
+             *
+             * do NOT try this bc this tries to cat yet another 'string' to the existing string, which,
+             * naturally, ends with a '\0'. so the '\0' you are trying to cat will be catted as "\0\0" lol -> SIGSEGV
+             * bc you only allocated memory for one single '\0'
+            */
+            df.features[tokenCount][strlen(label)] = '\0';  //strncpy may also work. beware of the comment above though
+            df.cols++;
+            tokens = strtok(NULL, ","); //split the next token from source
+            free(label);
             tokenCount++;
         }
     }
@@ -410,9 +237,9 @@ csvData_t loadCsv()
             }
 
             row++;
+            df.rows++;
         }
     }
-    printf("feature names on the inside: %s\n", df.features[0]);
 
 #if HIGH_DATAFRAME_DETAIL == 1
     getMinAndMaxFeatureValues(df); // if dataframe is highly detailed, pull min/max feature values
@@ -427,7 +254,7 @@ void DF_get_featureNames(csvData_t df)
 {
     for(int index=0; index < df.cols; index++)
     {
-        printf("%s\t", df.features[index]);
+        printf("~\"%s\"~", df.features[index]);
     }
     puts(" ");
 

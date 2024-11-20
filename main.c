@@ -7,7 +7,6 @@
 int main(void)
 {
     csvData_t df = loadCsv();
-    printf("feature names: %s\n", df.features[0]);
 
     DF_get_featureNames(df);
 

@@ -62,7 +62,7 @@ typedef struct
 
 
 static void closeFile(FILE *filePtr);
-static int *getFrameSize(void);
+static void getFrameSize(csvData_t df);
 static csvData_t createDataFrame(void);
 
 
