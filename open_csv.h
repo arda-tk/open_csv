@@ -20,25 +20,28 @@
 #ifndef DML_OPEN_CSV_H
 #define DML_OPEN_CSV_H
 
-#include <stdio.h>
+#include "inc/utils.h"
 
-#define CSV_PATH        ("../data/synthetic_data_elliptical.csv")
+#define CSV_PATH        ("../datasets/weather_forecast_data.csv")
 #define CSV_MODE        ("r")
-#define CSV_DELIM       (", ")
+#define CSV_DELIM       (",")
 
-#define HIGH_DATAFRAME_DETAIL       (0)     // turn this on to include more details about the dataframe
+#define HIGH_DATAFRAME_DETAIL               (0)     //turn this on to include more details about the dataframe
+
+#define MAX_ALLOWED_FEATURE_NAMES           (20)    //maximum of 20 features per dataset by default
+#define MAX_ALLOWED_FEATURE_VALUE           (25000) //vector size
 
 typedef enum {FALSE, TRUE, ERROR = -1} bool_t;
 
 #if HIGH_DATAFRAME_DETAIL == 0
 typedef struct
 {
-    char *delim;
+    char delim;
     int rows;
     int cols;
-    char *params;
-    long DFSize;
-    float **dataFrame;
+    long size;
+    char *features[MAX_ALLOWED_FEATURE_NAMES];
+    float dataFrame[MAX_ALLOWED_FEATURE_VALUE][MAX_ALLOWED_FEATURE_NAMES];
 }csvData_t;
 
 #else
@@ -58,11 +61,15 @@ typedef struct
 
 
 
-void closeFile(FILE *filePtr);
-int *getDFsize(FILE *filePtr);
-csvData_t *createDataFrame(FILE *filePtr);
+static void closeFile(FILE *filePtr);
+static int *getFrameSize(void);
+static csvData_t createDataFrame(void);
+
+
 char *trimToken(char *token);
 void getMinAndMaxFeatureValues(csvData_t *df);
-csvData_t *loadCsv(FILE *filePtr);
+csvData_t loadCsv(void);
+
+void DF_get_featureNames(csvData_t df);
 
 #endif //DML_OPEN_CSV_H

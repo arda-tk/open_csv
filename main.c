@@ -1,7 +1,15 @@
 #include <stdio.h>
+#include <stdlib.h>
+
+#include "open_csv.h"
 
 int main(void)
 {
-    printf("Hello, World!\n");
+    csvData_t df = loadCsv();
+
+    printf("feature names: %s\n", df.features[0]);
+
+    //DF_get_featureNames(&df);
+
     return 0;
 }
