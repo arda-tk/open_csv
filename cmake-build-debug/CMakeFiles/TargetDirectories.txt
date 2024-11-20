@@ -1,0 +1,3 @@
+/home/qman/CLionProjects/open_csv/cmake-build-debug/CMakeFiles/open_csv.dir
+/home/qman/CLionProjects/open_csv/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/qman/CLionProjects/open_csv/cmake-build-debug/CMakeFiles/rebuild_cache.dir
