@@ -22,9 +22,9 @@
 
 #include "inc/utils.h"
 
-#define CSV_PATH        ("../datasets/weather_forecast_data.csv")
-#define CSV_MODE        ("r")
-#define CSV_DELIM       (",")
+#define CSV_PATH        "../datasets/weather_forecast_data.csv"
+#define CSV_MODE        "r"
+#define CSV_DELIM       ","
 
 #define HIGH_DATAFRAME_DETAIL               (0)     //turn this on to include more details about the dataframe
 
