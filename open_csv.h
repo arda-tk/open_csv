@@ -71,5 +71,6 @@ void getMinAndMaxFeatureValues(csvData_t *df);
 csvData_t loadCsv(void);
 
 void DF_get_featureNames(csvData_t df);
+void DF_get_frameSize(csvData_t df);
 
 #endif //DML_OPEN_CSV_H

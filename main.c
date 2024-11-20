@@ -9,6 +9,7 @@ int main(void)
     csvData_t df = loadCsv();
 
     DF_get_featureNames(df);
+    DF_get_frameSize(df);
 
     return 0;
 }

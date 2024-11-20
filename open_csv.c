@@ -51,8 +51,8 @@ static void closeFile(FILE *filePtr)
     }
     else
     {
-        fprintf(stdout, "File has been closed safely by closeFile().\n");
         fclose(filePtr);
+        SYS_MSG(stdout, "File has been closed safely by closeFile().\n");
     }
 }
 
@@ -86,8 +86,6 @@ static void closeFile(FILE *filePtr)
  */
 char *trimToken(char *token)
 {
-    puts("called trimToken");
-
     char *trimmedToken = (char *)malloc(strlen(token) + 1);
     trimmedToken[0] = '\0';
 
@@ -103,13 +101,8 @@ char *trimToken(char *token)
         loop++;
     }
 
-    puts(trimmedToken);
-
     return trimmedToken;
 }
-/**
- * ...
- */
 #if HIGH_DATAFRAME_DETAIL == 1
 void getMinAndMaxFeatureValues(csvData_t *df)
 {
@@ -208,7 +201,7 @@ csvData_t loadCsv()
             /*
              * --> strncat(df.features[tokenCount], '\0', sizeof(char));
              *
-             * do NOT try this bc this tries to cat yet another 'string' to the existing string, which,
+             * do NOT try this bc this tries to cat yet another "string" to the existing string, which,
              * naturally, ends with a '\0'. so the '\0' you are trying to cat will be catted as "\0\0" lol -> SIGSEGV
              * bc you only allocated memory for one single '\0'
             */
@@ -241,6 +234,8 @@ csvData_t loadCsv()
         }
     }
 
+    df.size = (long)df.rows * (long)df.cols;
+
 #if HIGH_DATAFRAME_DETAIL == 1
     getMinAndMaxFeatureValues(df); // if dataframe is highly detailed, pull min/max feature values
 #endif
@@ -252,12 +247,18 @@ csvData_t loadCsv()
 
 void DF_get_featureNames(csvData_t df)
 {
+    printf("Features:\n\t[\t");
     for(int index=0; index < df.cols; index++)
     {
-        printf("~\"%s\"~", df.features[index]);
+        printf("~\"%s\"~   ", df.features[index]);
     }
-    puts(" ");
+    printf("]\n\n");
+}
 
-    printf("rows: %d\n", df.rows);
-    printf("cols: %d\n", df.cols);
+void DF_get_frameSize(csvData_t df)
+{
+    printf("The dataset consists of:\n"
+           "\t%d rows,\n"
+           "\t%d columns,\n"
+           "\tthat is a total of %ld cells.\n\n", df.rows, df.cols, df.size);
 }
