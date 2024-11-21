@@ -51,8 +51,8 @@ static void closeFile(FILE *filePtr)
     }
     else
     {
-        fprintf(stdout, "File has been closed safely by closeFile().\n");
         fclose(filePtr);
+        SYS_MSG(stdout, "File has been closed safely by closeFile().\n");
     }
 }
 
@@ -86,8 +86,6 @@ static void closeFile(FILE *filePtr)
  */
 char *trimToken(char *token)
 {
-    puts("called trimToken");
-
     char *trimmedToken = (char *)malloc(strlen(token) + 1);
     trimmedToken[0] = '\0';
 
@@ -103,13 +101,8 @@ char *trimToken(char *token)
         loop++;
     }
 
-    puts(trimmedToken);
-
     return trimmedToken;
 }
-/**
- * ...
- */
 #if HIGH_DATAFRAME_DETAIL == 1
 void getMinAndMaxFeatureValues(csvData_t *df)
 {
@@ -188,58 +181,55 @@ csvData_t loadCsv()
 
     //EXTRACT FEATURE NAMES ---------------------------------------------------
 
+    fgets(buffer, 1024, csvPtr);       //get the first line of csv file
+    char *tokens = strtok(buffer, CSV_DELIM);   //split into multiple tokens
+    int tokenCount = 0;
+
+    while(tokens)
     {
-        fgets(buffer, 1024, csvPtr);       //get the first line of csv file
-        char *tokens = strtok(buffer, ",");   //split into multiple tokens
-        int tokenCount = 0;
-
-        while(tokens)
+        if(MAX_ALLOWED_FEATURE_NAMES - 1 == tokenCount)
         {
-            if(MAX_ALLOWED_FEATURE_NAMES - 1 == tokenCount)
-            {
-                LOG_ERROR("The program has prevented a buffer overflow. "
-                          "Please increase the maximum allowed number of feature names\n");
-                abort();
-            }
+            LOG_ERROR("The program has prevented a buffer overflow. "
+                "Please increase the maximum allowed number of feature names\n");
+            abort();
+        }
 
-            char *label = trimToken(tokens); //trim token of unwanted characters
-            df.features[tokenCount] = (char *)malloc(sizeof(char) * (strlen(label) + 1));
-            strncpy(df.features[tokenCount], label, sizeof(char) * strlen(label)); //write into dataframe
+        char *label = trimToken(tokens); //trim token of unwanted characters
+        df.features[tokenCount] = (char *)malloc(sizeof(char) * (strlen(label) + 1));
+        strncpy(df.features[tokenCount], label, sizeof(char) * strlen(label)); //write into dataframe
             /*
              * --> strncat(df.features[tokenCount], '\0', sizeof(char));
              *
-             * do NOT try this bc this tries to cat yet another 'string' to the existing string, which,
+             * do NOT try this bc this tries to cat yet another "string" to the existing string, which,
              * naturally, ends with a '\0'. so the '\0' you are trying to cat will be catted as "\0\0" lol -> SIGSEGV
              * bc you only allocated memory for one single '\0'
             */
-            df.features[tokenCount][strlen(label)] = '\0';  //strncpy may also work. beware of the comment above though
-            df.cols++;
-            tokens = strtok(NULL, ","); //split the next token from source
-            free(label);
-            tokenCount++;
-        }
+        df.features[tokenCount][strlen(label)] = '\0';  //strncpy may also work. beware of the comment above though
+        df.cols++;
+        tokens = strtok(NULL, CSV_DELIM); //split the next token from source
+        free(label);
+        tokenCount++;
     }
 
     //EXTRACT DATA POINTS------------------------------------------------------
-
+    int row = 0;
+    while(fgets(buffer, 1024, csvPtr)) //get data from dataset row by row
     {
-        int row = 0;
-        while(fgets(buffer, 1024, csvPtr)) //get data from dataset row by row
+        int col = 0;
+        char *tokens = strtok(buffer, CSV_DELIM); //split into tokens
+
+        while(tokens)
         {
-            int col = 0;
-            char *tokens = strtok(buffer, &df.delim); //split into tokens
-
-            while(tokens)
-            {
-                df.dataFrame[row][col] = atof(tokens); //feed data into dataframe
-                tokens = strtok(NULL, &df.delim); //further break into tokens
-                col++;
-            }
-
-            row++;
-            df.rows++;
+            df.dataFrame[row][col] = atof(tokens); //feed data into dataframe
+            tokens = strtok(NULL, CSV_DELIM); //further break into tokens
+            col++;
         }
+
+        row++;
+        df.rows++;
     }
+
+    df.size = (long)df.rows * (long)df.cols;
 
 #if HIGH_DATAFRAME_DETAIL == 1
     getMinAndMaxFeatureValues(df); // if dataframe is highly detailed, pull min/max feature values
@@ -252,12 +242,82 @@ csvData_t loadCsv()
 
 void DF_get_featureNames(csvData_t df)
 {
+    printf("Features:\n\t[\t");
     for(int index=0; index < df.cols; index++)
     {
-        printf("~\"%s\"~", df.features[index]);
+        printf("~\"%s\"~   ", df.features[index]);
     }
-    puts(" ");
+    printf("]\n\n");
+}
 
-    printf("rows: %d\n", df.rows);
-    printf("cols: %d\n", df.cols);
+void DF_get_frameSize(csvData_t df)
+{
+    printf("The dataset consists of:\n"
+           "\t%d rows,\n"
+           "\t%d columns,\n"
+           "\tthat is a total of %ld cells.\n\n", df.rows, df.cols, df.size);
+}
+
+void DF_get_head(csvData_t df)
+{
+    printf("Head: \n");
+
+    for (int rindex=0; rindex < CSV_NUM_OF_ROWS_AT_HEAD; rindex++)
+    {
+        for (int cindex=0; cindex < df.cols; cindex++)
+        {
+            printf("\t%6.3f", df.dataFrame[rindex][cindex]);
+        }
+        printf("\n");
+    }
+
+    printf("\n");
+}
+
+void DF_get_tail(csvData_t df)
+{
+    printf("Tail: \n");
+
+    for (int rindex=df.rows - 1; rindex >= df.rows - CSV_NUM_OF_ROWS_AT_HEAD; rindex--)
+    {
+        for (int cindex=0; cindex < df.cols; cindex++)
+        {
+            printf("\t%6.3f", df.dataFrame[rindex][cindex]);
+        }
+        printf("\n");
+    }
+
+    printf("\n");
+}
+
+void DF_get_randomSamples(csvData_t df)
+{
+    int sample_indexes[CSV_NUM_OF_ROWS_AT_RANDOM] = {0};
+
+    srand(time(NULL));
+
+    for (int index=0; index < CSV_NUM_OF_ROWS_AT_RANDOM; index++)
+    {
+        sample_indexes[index] = rand() % df.rows;
+    }
+
+printf("Random Samples: \n");
+
+    for (int rindex=0; rindex < CSV_NUM_OF_ROWS_AT_RANDOM; rindex++)
+    {
+        for (int cindex=0; cindex < df.cols; cindex++)
+        {
+            if (cindex == 0)
+            {
+                printf("\t%d)\t\t%6.3f",sample_indexes[rindex], df.dataFrame[sample_indexes[rindex]][cindex]);
+            }
+            else
+            {
+                printf("\t%6.3f", df.dataFrame[sample_indexes[rindex]][cindex]);
+            }
+        }
+        printf("\n");
+    }
+
+    printf("\n");
 }
