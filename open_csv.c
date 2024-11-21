@@ -232,7 +232,7 @@ csvData_t loadCsv()
     df.size = (long)df.rows * (long)df.cols;
 
 #if HIGH_DATAFRAME_DETAIL == 1
-    getMinAndMaxFeatureValues(df); // if dataframe is highly detailed, pull min/max feature values
+    getMinAndMaxFeatureValues(df); // if dataframe is high-detail, pull min/max feature values
 #endif
 
     fclose(csvPtr);
