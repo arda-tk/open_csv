@@ -21,8 +21,9 @@
 #define DML_OPEN_CSV_H
 
 #include "inc/utils.h"
+#include <time.h>
 
-#define CSV_PATH        "../datasets/weather_forecast_data.csv"
+#define CSV_PATH        "../datasets/heart.csv"
 #define CSV_MODE        "r"
 #define CSV_DELIM       ","
 
@@ -30,6 +31,10 @@
 
 #define MAX_ALLOWED_FEATURE_NAMES           (20)    //maximum of 20 features per dataset by default
 #define MAX_ALLOWED_FEATURE_VALUE           (25000) //vector size
+
+#define CSV_NUM_OF_ROWS_AT_HEAD             (5)
+#define CSV_NUM_OF_ROWS_AT_TAIL             (5)
+#define CSV_NUM_OF_ROWS_AT_RANDOM           (5)
 
 typedef enum {FALSE, TRUE, ERROR = -1} bool_t;
 
@@ -72,5 +77,8 @@ csvData_t loadCsv(void);
 
 void DF_get_featureNames(csvData_t df);
 void DF_get_frameSize(csvData_t df);
+void DF_get_head(csvData_t df);
+void DF_get_tail(csvData_t df);
+void DF_get_randomSamples(csvData_t df);
 
 #endif //DML_OPEN_CSV_H

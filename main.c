@@ -1,7 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "open_csv.h"
 
 int main(void)
@@ -10,6 +6,9 @@ int main(void)
 
     DF_get_featureNames(df);
     DF_get_frameSize(df);
+    DF_get_head(df);
+    DF_get_tail(df);
+    DF_get_randomSamples(df);
 
     return 0;
 }
